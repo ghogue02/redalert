@@ -14,8 +14,10 @@ namespace RedAlert.Units
         [SerializeField] private string _armorTag = "Light"; // simple tag string for Week 2
 
         public float MaxHealth => _maxHealth;
+        public float Health => _currentHealth;
         public float CurrentHealth => _currentHealth;
         public string ArmorTag => _armorTag;
+        public bool IsDead => _currentHealth <= 0;
 
         public struct DamageInfo
         {
@@ -25,7 +27,9 @@ namespace RedAlert.Units
         }
 
         public event Action OnDeath;
-        public event Action<DamageInfo> OnDamaged;
+        public event System.Action<float, Vector3> OnDamaged;
+        public event System.Action<float, float> OnHealthChanged;
+        public event System.Action<float, float, float> OnDamagedDetailed;
 
         private void Awake()
         {
@@ -42,14 +46,24 @@ namespace RedAlert.Units
             _currentHealth -= dmg;
             EventBus.PublishUnderAttack(gameObject);
 
-            // Fire non-alloc style event using small struct
-            OnDamaged?.Invoke(new DamageInfo { amount = dmg, weaponTag = attackerWeaponVsArmorTag, source = source });
+            // Fire events
+            OnDamaged?.Invoke(dmg, source?.transform.position ?? Vector3.zero);
+            OnDamagedDetailed?.Invoke(dmg, _currentHealth, _maxHealth);
+            OnHealthChanged?.Invoke(_currentHealth, _maxHealth);
 
             if (_currentHealth <= 0)
             {
                 _currentHealth = 0;
                 Die();
             }
+        }
+
+        /// <summary>
+        /// Simplified damage method for direct damage without weapon/armor calculations
+        /// </summary>
+        public void TakeDamage(float amount, Vector3 damageSource)
+        {
+            ApplyDamage(amount, "Direct", null);
         }
 
         private float GetMultiplier(string weaponTag, string armorTag)

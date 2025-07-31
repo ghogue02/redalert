@@ -14,10 +14,12 @@ namespace RedAlert.UI
         [Header("Buttons")]
         [SerializeField] private Button _btnRefinery;
         [SerializeField] private Button _btnFactory;
+        [SerializeField] private Button _btnBarracks;
 
         [Header("Cost Labels (optional)")]
         [SerializeField] private Text _refineryCostText;
         [SerializeField] private Text _factoryCostText;
+        [SerializeField] private Text _barracksCostText;
 
         [Header("Refs")]
         [SerializeField] private BuildPlacementController _builder;
@@ -33,6 +35,7 @@ namespace RedAlert.UI
         {
             if (_refineryCostText != null) _refineryCostText.text = PlacementRules.CostRefinery.ToString();
             if (_factoryCostText != null) _factoryCostText.text = PlacementRules.CostFactory.ToString();
+            if (_barracksCostText != null) _barracksCostText.text = PlacementRules.CostBarracks.ToString();
 
             if (_economy != null)
             {
@@ -42,6 +45,7 @@ namespace RedAlert.UI
 
             if (_btnRefinery != null) _btnRefinery.onClick.AddListener(OnClickRefinery);
             if (_btnFactory != null) _btnFactory.onClick.AddListener(OnClickFactory);
+            if (_btnBarracks != null) _btnBarracks.onClick.AddListener(OnClickBarracks);
         }
 
         private void OnDisable()
@@ -49,6 +53,7 @@ namespace RedAlert.UI
             if (_economy != null) _economy.OnCrystaliteChanged -= OnCrystaliteChanged;
             if (_btnRefinery != null) _btnRefinery.onClick.RemoveListener(OnClickRefinery);
             if (_btnFactory != null) _btnFactory.onClick.RemoveListener(OnClickFactory);
+            if (_btnBarracks != null) _btnBarracks.onClick.RemoveListener(OnClickBarracks);
         }
 
         private void Update()
@@ -67,6 +72,7 @@ namespace RedAlert.UI
             int funds = _economy != null ? _economy.Crystalite : 0;
             if (_btnRefinery != null) _btnRefinery.interactable = allow && funds >= PlacementRules.CostRefinery;
             if (_btnFactory != null) _btnFactory.interactable = allow && funds >= PlacementRules.CostFactory;
+            if (_btnBarracks != null) _btnBarracks.interactable = allow && funds >= PlacementRules.CostBarracks;
         }
 
         private void OnClickRefinery()
@@ -77,6 +83,11 @@ namespace RedAlert.UI
         private void OnClickFactory()
         {
             if (_builder != null) _builder.BeginPlacement(BuildPlacementController.BuildType.Factory);
+        }
+
+        private void OnClickBarracks()
+        {
+            if (_builder != null) _builder.BeginPlacement(BuildPlacementController.BuildType.Barracks);
         }
     }
 }

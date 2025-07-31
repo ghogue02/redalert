@@ -1,0 +1,81 @@
+name: Deploy Pre-built Unity 6.1 WebGL
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'build/WebGL/**'  # Only trigger when WebGL build changes
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'build/WebGL/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-vercel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify WebGL Build Exists
+        run: |
+          if [ ! -d "build/WebGL" ]; then
+            echo "❌ No WebGL build found at build/WebGL/"
+            echo "🔧 Please run local Unity build first:"
+            echo "   1. Open Unity 6.1 project"
+            echo "   2. File > Build and Run > WebGL"
+            echo "   3. Build to build/WebGL/ directory"
+            echo "   4. Commit and push the build folder"
+            exit 1
+          fi
+          
+          echo "✅ WebGL build found"
+          ls -la build/WebGL/
+          
+          # Check for essential WebGL files
+          if [ ! -f "build/WebGL/index.html" ]; then
+            echo "⚠️ Warning: index.html not found in WebGL build"
+          fi
+          
+          if [ ! -d "build/WebGL/Build" ]; then
+            echo "⚠️ Warning: Build directory not found in WebGL build"
+          else
+            echo "📁 WebGL Build contents:"
+            ls -la build/WebGL/Build/
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          echo "🚀 Deploying Unity 6.1 WebGL build to Vercel..."
+          
+          # Deploy the WebGL build directory
+          vercel --token=$VERCEL_TOKEN --prod --yes --cwd ./build/WebGL
+          
+          echo "✅ Deployment completed!"
+          echo "🎮 Your Unity 6.1 game should be live on Vercel"
+
+      - name: Deployment Summary
+        run: |
+          echo "📊 DEPLOYMENT SUMMARY"
+          echo "═══════════════════════════════════════════════════"
+          echo "🎯 Unity Version: 6.1 (6000.1.14f1)"
+          echo "🏗️ Build Method: Local Unity build"
+          echo "☁️ Deployment: Vercel"
+          echo "📁 Source: build/WebGL/"
+          echo "✅ Status: Deployed"
+          echo ""
+          echo "🎮 Game should be accessible at your Vercel domain"
+          echo "📋 Check Vercel dashboard for deployment URL"

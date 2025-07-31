@@ -16,12 +16,20 @@ namespace RedAlert.Core
         // Combat
         public static event Action<GameObject> OnUnderAttack; // target GO
         public static event Action<GameObject> OnUnitDeath;   // dead GO
+        public static event Action<GameObject> OnUnitDied;    // alias for compatibility
+        public static event Action<GameObject> OnBuildingDestroyed; // building destroyed
 
         // Publish helpers (static, inline)
         public static void PublishNodeDepleted() => OnNodeDepleted?.Invoke();
         public static void PublishInsufficientResources(int cost) => OnInsufficientResources?.Invoke(cost);
         public static void PublishUnderAttack(GameObject target) => OnUnderAttack?.Invoke(target);
-        public static void PublishUnitDeath(GameObject dead) => OnUnitDeath?.Invoke(dead);
+        public static void PublishUnitDeath(GameObject dead) 
+        { 
+            OnUnitDeath?.Invoke(dead);
+            OnUnitDied?.Invoke(dead);
+        }
+        public static void PublishUnitDied(GameObject dead) => PublishUnitDeath(dead);
+        public static void PublishBuildingDestroyed(GameObject building) => OnBuildingDestroyed?.Invoke(building);
 
         // Keep a MonoBehaviour to allow presence in scene; not strictly required.
         private void Awake() { }

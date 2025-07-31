@@ -33,5 +33,10 @@ namespace RedAlert.Combat
             _hitscan.Fire(targetPos);
             _nextFireTime = Time.time + _cooldownSeconds;
         }
+
+        public void TryFire(Vector3 targetPos)
+        {
+            TryFireAt(targetPos);
+        }
     }
 }

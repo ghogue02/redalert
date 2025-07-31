@@ -1,0 +1,16 @@
+{
+    "name": "RedAlert.Performance",
+    "rootNamespace": "RedAlert.Performance",
+    "references": [
+        "RedAlert.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

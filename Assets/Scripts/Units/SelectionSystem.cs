@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ namespace RedAlert.Units
     /// </summary>
     public class SelectionSystem : MonoBehaviour
     {
+        public event Action<List<BasicUnit>> OnSelectionChanged;
+        
         [Header("Layers")]
         [SerializeField] private string unitsLayerName = "Units";
         [SerializeField] private LayerMask groundMask = -1; // Assign to ground/static colliders for ray hit
@@ -34,6 +37,9 @@ namespace RedAlert.Units
 
         private static readonly List<ISelectable> Selected = new List<ISelectable>(64);
         private static readonly List<ISelectable> TempFound = new List<ISelectable>(128);
+        private readonly List<BasicUnit> _selectedUnits = new List<BasicUnit>(64);
+        
+        public List<BasicUnit> SelectedUnits => _selectedUnits;
 
         private void Awake()
         {
@@ -163,7 +169,7 @@ namespace RedAlert.Units
             }
         }
 
-        private static void ClearSelection()
+        private void ClearSelection()
         {
             for (int i = 0; i < Selected.Count; i++)
             {
@@ -171,11 +177,14 @@ namespace RedAlert.Units
                 if (s != null) s.SetSelected(false);
             }
             Selected.Clear();
+            
+            _selectedUnits.Clear();
+            OnSelectionChanged?.Invoke(_selectedUnits);
         }
 
         private const int MaxSelection = 24;
 
-        private static void Select(ISelectable s)
+        private void Select(ISelectable s)
         {
             if (s == null) return;
             if (Selected.Count >= MaxSelection)
@@ -185,6 +194,18 @@ namespace RedAlert.Units
             }
             s.SetSelected(true);
             Selected.Add(s);
+            
+            // Add to BasicUnit list if applicable
+            if (s is Component component)
+            {
+                var basicUnit = component.GetComponent<BasicUnit>();
+                if (basicUnit != null && !_selectedUnits.Contains(basicUnit))
+                {
+                    _selectedUnits.Add(basicUnit);
+                }
+            }
+            
+            OnSelectionChanged?.Invoke(_selectedUnits);
         }
 
         /// <summary>
@@ -223,6 +244,8 @@ namespace RedAlert.Units
 
         private MaterialPropertyBlock _mpb;
         private bool _isSelected;
+        
+        public bool IsSelected => _isSelected;
 
         private void Awake()
         {
@@ -232,14 +255,23 @@ namespace RedAlert.Units
 
         public void SetSelected(bool selected)
         {
-            if (_renderer == null) return;
             if (_isSelected == selected) return;
             _isSelected = selected;
 
             // Apply simple color tint via MPB to avoid material instantiation.
-            _renderer.GetPropertyBlock(_mpb, _highlightMaterialIndex);
-            _mpb.SetColor(_colorProperty, selected ? _highlightColor : Color.white);
-            _renderer.SetPropertyBlock(_mpb, _highlightMaterialIndex);
+            if (_renderer != null)
+            {
+                _renderer.GetPropertyBlock(_mpb, _highlightMaterialIndex);
+                _mpb.SetColor(_colorProperty, selected ? _highlightColor : Color.white);
+                _renderer.SetPropertyBlock(_mpb, _highlightMaterialIndex);
+            }
+            
+            // Update selection ring if present
+            var selectionRing = GetComponent<RedAlert.UI.SelectionRing>();
+            if (selectionRing != null)
+            {
+                selectionRing.SetSelected(selected);
+            }
         }
     }
 }

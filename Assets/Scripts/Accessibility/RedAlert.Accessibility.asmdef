@@ -1,0 +1,18 @@
+{
+    "name": "RedAlert.Accessibility",
+    "rootNamespace": "RedAlert.Accessibility",
+    "references": [
+        "RedAlert.UI",
+        "RedAlert.Units",
+        "RedAlert.Build"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

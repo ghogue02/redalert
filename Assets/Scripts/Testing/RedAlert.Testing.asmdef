@@ -1,0 +1,24 @@
+{
+    "name": "RedAlert.Testing",
+    "rootNamespace": "RedAlert.Testing",
+    "references": [
+        "RedAlert.Core",
+        "RedAlert.Units",
+        "RedAlert.Economy",
+        "RedAlert.Build",
+        "RedAlert.UI",
+        "RedAlert.Performance",
+        "RedAlert.Audio",
+        "RedAlert.WebGL",
+        "RedAlert.Accessibility"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

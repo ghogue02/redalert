@@ -1,0 +1,17 @@
+{
+    "name": "RedAlert.Save",
+    "rootNamespace": "RedAlert.Save",
+    "references": [
+        "RedAlert.Core",
+        "RedAlert.Economy"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

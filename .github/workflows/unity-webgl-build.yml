@@ -1,0 +1,112 @@
+name: Unity 6.1 WebGL CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-webgl:
+    runs-on: macos-14  # Apple Silicon runner for Unity 6.1
+    env:
+      UNITY_VERSION: 6000.1.14f1
+      UNITY_PATH: /Applications/Unity/Hub/Editor/6000.1.14f1/Unity.app/Contents/MacOS/Unity
+      PROJECT_PATH: .
+      BUILD_TARGET: WebGL
+      BUILD_NAME: WebGL
+      BUILD_PATH: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: |
+            Library
+            Logs  
+            Temp
+            obj
+          key: unity-${{ env.UNITY_VERSION }}-webgl-${{ hashFiles('Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: |
+            unity-${{ env.UNITY_VERSION }}-webgl-
+            unity-${{ env.UNITY_VERSION }}-
+
+      - name: Activate Unity License
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          # Create Unity license directory
+          mkdir -p "$HOME/Library/Application Support/Unity/"
+          
+          # Write license file
+          echo "$UNITY_LICENSE" > "$HOME/Library/Application Support/Unity/Unity_lic.ulf"
+          
+          # Verify license file exists
+          ls -la "$HOME/Library/Application Support/Unity/"
+
+      - name: Unity - Build WebGL
+        run: |
+          # Build WebGL using Unity 6.1 command line
+          "$UNITY_PATH" \
+            -projectPath "$PROJECT_PATH" \
+            -batchmode -nographics -quit \
+            -logFile - \
+            -buildTarget WebGL \
+            -executeMethod RedAlert.CI.CIBuild.BuildWebGL
+
+      - name: Verify Build Output
+        run: |
+          ls -la build/
+          if [ -d "build/WebGL" ]; then
+            echo "✅ WebGL build successful"
+            ls -la build/WebGL/
+          else
+            echo "❌ WebGL build failed - no output directory"
+            exit 1
+          fi
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity61-WebGL-Build
+          path: build/WebGL
+          retention-days: 7
+
+  deploy-vercel:
+    needs: build-webgl
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Unity61-WebGL-Build
+          path: ./dist
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          # List contents for debugging
+          ls -la ./dist/
+          
+          # Deploy to Vercel
+          vercel --token=$VERCEL_TOKEN --prod --yes --cwd ./dist

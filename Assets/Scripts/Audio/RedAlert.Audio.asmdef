@@ -1,0 +1,16 @@
+{
+    "name": "RedAlert.Audio",
+    "rootNamespace": "RedAlert.Audio",
+    "references": [
+        "RedAlert.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
