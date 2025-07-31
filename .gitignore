@@ -41,6 +41,9 @@ crashlytics-build.properties
 # Build artifacts
 [Bb]uild/
 [Bb]uilds/
+
+# Exception: Allow WebGL builds for deployment
+!build/WebGL/
 *.apk
 *.aab
 *.ipa
@@ -60,3 +63,4 @@ UCBDownload/
 
 # Visual Studio Code
 .vscode/
+.vercel
