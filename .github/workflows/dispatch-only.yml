@@ -1,0 +1,14 @@
+name: Manual Dispatch Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo context
+        run: |
+          echo "Repo: $GITHUB_REPOSITORY"
+          echo "SHA: $GITHUB_SHA"
+          echo "Actor: $GITHUB_ACTOR"
