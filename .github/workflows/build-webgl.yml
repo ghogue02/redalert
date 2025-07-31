@@ -34,6 +34,7 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
+          unityVersion: 2022.3.48f1
           targetPlatform: WebGL
           allowDirtyBuild: true
           buildName: redalert
@@ -51,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
     steps:
