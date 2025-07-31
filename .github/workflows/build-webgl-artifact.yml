@@ -16,6 +16,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Resolve Unity Version
+        id: resolve_unity
+        shell: bash
+        run: |
+          set -e
+          DEF="2022.3.48f1"
+          FILE="ProjectSettings/ProjectVersion.txt"
+          if [ -f "$FILE" ]; then
+            V=$(grep -E "^m_EditorVersion:" "$FILE" | awk '{print $2}')
+            echo "editorVersion=${V:-$DEF}" >> "$GITHUB_OUTPUT"
+          else
+            echo "editorVersion=$DEF" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Export resolved version to env
+        run: echo "UNITY_VERSION_RESOLVED=${{ steps.resolve_unity.outputs.editorVersion }}" >> $GITHUB_ENV
+
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -29,7 +45,7 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
-          unityVersion: 2022.3.48f1
+          unityVersion: ${{ env.UNITY_VERSION_RESOLVED }}
           targetPlatform: WebGL
           projectPath: .
           buildName: redalert
@@ -37,6 +53,7 @@ jobs:
           versioning: None
 
       - name: List build output
+        if: always()
         run: |
           echo "Listing build output (expected default path: build/WebGL/redalert):"
           find build -maxdepth 3 -type d -print || true
@@ -52,7 +69,8 @@ jobs:
           path: |
             /github/home/.local/share/unity3d/Editor/Editor.log
             /home/runner/.local/share/unity3d/Editor/Editor.log
-          if-no-files-found: warn
+            ~/.local/share/unity3d/Editor/Editor.log
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: Upload Unity Builder logs on failure
@@ -66,11 +84,27 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+      - name: Upload all logs snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-snapshot
+          path: |
+            ${{ github.workspace }}/**/*.log
+            ${{ github.workspace }}/**/Editor.log
+            ${{ runner.temp }}/**/*.log
+            ${{ runner.temp }}/unity/**
+            $HOME/.local/share/unity3d/**
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload raw WebGL build
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: webgl-build-raw
-          path: build
+          path: |
+            build/**
+            Build/**
           if-no-files-found: warn
           retention-days: 7

@@ -1,0 +1,119 @@
+name: Deploy WebGL to itch.io (Optional)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy_itch:
+    name: Build WebGL and deploy to itch.io (if configured)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve Unity Version
+        id: resolve_unity
+        shell: bash
+        run: |
+          set -e
+          DEF="2022.3.48f1"
+          FILE="ProjectSettings/ProjectVersion.txt"
+          if [ -f "$FILE" ]; then
+            V=$(grep -E "^m_EditorVersion:" "$FILE" | awk '{print $2}')
+            echo "editorVersion=${V:-$DEF}" >> "$GITHUB_OUTPUT"
+          else
+            echo "editorVersion=$DEF" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Export resolved version to env
+        run: echo "UNITY_VERSION_RESOLVED=${{ steps.resolve_unity.outputs.editorVersion }}" >> $GITHUB_ENV
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('**/Packages/manifest.json') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      - name: Unity - Builder
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION_RESOLVED }}
+          targetPlatform: WebGL
+          projectPath: .
+          buildName: redalert
+          allowDirtyBuild: true
+          versioning: None
+
+      - name: List build output
+        if: always()
+        run: |
+          echo "Listing build output:"
+          ls -la build || true
+          ls -la build/WebGL || true
+          ls -la build/WebGL/redalert || true
+
+      - name: Upload raw WebGL build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-build-raw
+          path: |
+            build/**
+            Build/**
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Determine itch/io deploy eligibility
+        id: itch_guard
+        shell: bash
+        env:
+          HAS_ITCH_KEY: ${{ secrets.ITCH_API_KEY }}
+          ITCH_TARGET_ENV: ${{ env.ITCH_TARGET }}
+        run: |
+          elig="false"
+          if [ -n "${HAS_ITCH_KEY:-}" ] && [ -n "${ITCH_TARGET_ENV:-}" ]; then
+            elig="true"
+          fi
+          echo "eligible=$elig" >> "$GITHUB_OUTPUT"
+
+      - name: Install butler (itch.io CLI)
+        if: ${{ steps.itch_guard.outputs.eligible == 'true' }}
+        run: |
+          set -e
+          curl -L https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default -o butler.zip
+          unzip butler.zip -d ./butler
+          sudo mv ./butler/butler /usr/local/bin/butler
+          butler -V
+
+      - name: Authenticate butler
+        if: ${{ steps.itch_guard.outputs.eligible == 'true' }}
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_API_KEY }}
+        run: |
+          echo "Butler authenticated via BUTLER_CREDENTIALS env"
+
+      - name: Push to itch.io
+        if: ${{ steps.itch_guard.outputs.eligible == 'true' }}
+        env:
+          BUTLER_CREDENTIALS: ${{ secrets.ITCH_API_KEY }}
+          ITCH_TARGET: ${{ env.ITCH_TARGET }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -e
+          if [ -d "build/WebGL/redalert" ]; then
+            BUILD_DIR="build/WebGL/redalert"
+          elif [ -d "build/WebGL" ]; then
+            BUILD_DIR="build/WebGL"
+          elif [ -d "Build/WebGL" ]; then
+            BUILD_DIR="Build/WebGL"
+          else
+            echo "No WebGL build directory found to push"; exit 1
+          fi
+          echo "Pushing $BUILD_DIR to $ITCH_TARGET"
+          butler push "$BUILD_DIR" "$ITCH_TARGET" --userversion "$GITHUB_SHA"
