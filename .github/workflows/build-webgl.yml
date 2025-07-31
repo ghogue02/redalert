@@ -5,6 +5,15 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build WebGL
@@ -17,17 +26,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ hashFiles(**/Assets/**, **/Packages/**, **/ProjectSettings/**) }}
+          key: Library-${{ runner.os }}-${{ hashFiles('**/Packages/manifest.json') }}
           restore-keys: |
-            Library-
-
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
+            Library-${{ runner.os }}-
 
       - name: Unity - Builder
         uses: game-ci/unity-builder@v4
@@ -36,39 +37,34 @@ jobs:
         with:
           unityVersion: 2022.3.48f1
           targetPlatform: WebGL
-          allowDirtyBuild: true
+          projectPath: .
           buildName: redalert
           buildPath: build
+          allowDirtyBuild: true
           versioning: None
 
-      - name: Upload WebGL artifact
-        uses: actions/upload-artifact@v4
+      - name: List build output
+        run: |
+          echo "Listing build output:"
+          ls -la build || true
+          ls -la build/WebGL || true
+
+      - name: Upload Pages artifact (WebGL)
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: WebGL
           path: build/WebGL
 
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download WebGL artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: WebGL
-          path: webgl
-
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: webgl
-
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4

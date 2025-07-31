@@ -4,11 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  ping:
+  echo:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo context
-        run: |
-          echo "Repo: $GITHUB_REPOSITORY"
-          echo "SHA: $GITHUB_SHA"
-          echo "Actor: $GITHUB_ACTOR"
+      - name: Echo
+        run: echo "Smoke workflow dispatch OK"
