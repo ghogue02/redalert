@@ -1,0 +1,76 @@
+name: Build WebGL (Artifact Only)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build_webgl_artifact:
+    name: Build WebGL and upload artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('**/Packages/manifest.json') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      - name: Unity - Builder
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          unityVersion: 2022.3.48f1
+          targetPlatform: WebGL
+          projectPath: .
+          buildName: redalert
+          allowDirtyBuild: true
+          versioning: None
+
+      - name: List build output
+        run: |
+          echo "Listing build output (expected default path: build/WebGL/redalert):"
+          find build -maxdepth 3 -type d -print || true
+          ls -la build || true
+          ls -la build/WebGL || true
+          ls -la build/WebGL/redalert || true
+
+      - name: Upload Editor.log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-log
+          path: |
+            /github/home/.local/share/unity3d/Editor/Editor.log
+            /home/runner/.local/share/unity3d/Editor/Editor.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload Unity Builder logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-builder-logs
+          path: |
+            /github/workspace/**/Logs/**/*
+            /github/workspace/**/Logs/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload raw WebGL build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-build-raw
+          path: build
+          if-no-files-found: warn
+          retention-days: 7
