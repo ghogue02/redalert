@@ -43,13 +43,50 @@ jobs:
           allowDirtyBuild: true
           versioning: None
 
+      # Always attempt to list outputs to aid debugging
       - name: List build output
         run: |
           echo "Listing build output:"
           ls -la build || true
           ls -la build/WebGL || true
 
+      # On failure, upload Editor.log to diagnose activation/build issues
+      - name: Upload Editor.log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: editor-log
+          path: |
+            /github/home/.local/share/unity3d/Editor/Editor.log
+            /home/runner/.local/share/unity3d/Editor/Editor.log
+          if-no-files-found: warn
+          retention-days: 7
+
+      # On failure, upload game-ci builder logs if available
+      - name: Upload Unity Builder logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-builder-logs
+          path: |
+            /github/workspace/**/Logs/**/*
+            /github/workspace/**/Logs/**/*.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      # If build folder exists, upload it as a generic artifact for inspection
+      - name: Upload build artifact (raw)
+        if: always() && hashFiles('build/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: webgl-build-raw
+          path: build
+          if-no-files-found: warn
+          retention-days: 7
+
+      # Pages artifact (for deploy job) - keep as separate artifact
       - name: Upload Pages artifact (WebGL)
+        if: success() && hashFiles('build/WebGL/**') != ''
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/WebGL
