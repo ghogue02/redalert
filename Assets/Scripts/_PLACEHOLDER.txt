@@ -1,0 +1,1 @@
+Scaffolding in progress. This file ensures the Assets/Scripts folder is tracked until all stubs are added.

@@ -1,0 +1,17 @@
+{
+  "name": "RedAlert.Units",
+  "references": [
+    "RedAlert.Core",
+    "RedAlert.Data",
+    "RedAlert.Pathing"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,0 +1,14 @@
+Scaffold note: The following folders are expected and referenced in docs/roadmap.
+They are created implicitly by placing files within them or by this marker file.
+
+Expected under Assets/:
+- Scripts/{Core, Data, Economy, Build, Units, Combat, Pathing, AI, UI, Debug}
+- Prefabs/{Units, Buildings, Resources, FX, UI}
+- Art/Placeholders
+- Materials/Placeholder
+- Shaders
+- Scenes
+- Resources/Data
+- UI/{Sprites, Layouts}
+- VFX
+- Audio

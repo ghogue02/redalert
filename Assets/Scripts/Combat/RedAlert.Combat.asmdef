@@ -1,0 +1,17 @@
+{
+  "name": "RedAlert.Combat",
+  "references": [
+    "RedAlert.Core",
+    "RedAlert.Data",
+    "RedAlert.Units"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

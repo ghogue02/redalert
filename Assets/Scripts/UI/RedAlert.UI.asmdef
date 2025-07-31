@@ -1,0 +1,20 @@
+{
+  "name": "RedAlert.UI",
+  "references": [
+    "RedAlert.Core",
+    "RedAlert.Data",
+    "RedAlert.Economy",
+    "RedAlert.Build",
+    "RedAlert.Units",
+    "RedAlert.Combat"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

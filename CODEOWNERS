@@ -1,0 +1,27 @@
+# CODEOWNERS
+# Use GitHub or GitLab CODEOWNERS semantics to require reviews from listed owners.
+# Wildcards apply recursively; later matches take precedence.
+
+# Global owners (fallback)
+*       @your-org/game-leads
+
+# Docs
+/Docs/   @your-org/docs
+
+# CI
+/CI/     @your-org/infra
+
+# Unity assets and scripts
+/Assets/ @your-org/engineers @your-org/tech-art
+
+# Module ownership (adjust as teams form)
+/Assets/Scripts/Core/     @your-org/engine-core
+/Assets/Scripts/Data/     @your-org/design-tech
+/Assets/Scripts/Pathing/  @your-org/engine-core
+/Assets/Scripts/Economy/  @your-org/gameplay
+/Assets/Scripts/Build/    @your-org/gameplay
+/Assets/Scripts/Units/    @your-org/gameplay
+/Assets/Scripts/Combat/   @your-org/gameplay
+/Assets/Scripts/UI/       @your-org/ui
+/Assets/Scripts/AI/       @your-org/ai
+/Assets/Scripts/Debug/    @your-org/engine-core

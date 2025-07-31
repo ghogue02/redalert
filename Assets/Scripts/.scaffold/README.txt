@@ -1,0 +1,1 @@
+This hidden scaffold marker ensures Git tracks the Assets/Scripts subtree before C# stubs are added.
